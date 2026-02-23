@@ -1,3 +1,20 @@
 #!/bin/bash
 set -euo pipefail
-exec jupyter lab   --ServerApp.ip=0.0.0.0   --ServerApp.port="${JUPYTER_PORT:-8888}"   --ServerApp.open_browser=False   --ServerApp.token="${JUPYTER_TOKEN:-}"   --ServerApp.password=''   --ServerApp.allow_origin='*'   --ServerApp.root_dir="/workspace"   --ServerApp.allow_root=True
+
+# Auto-generate a secure token if JUPYTER_TOKEN is not set (security best practice)
+if [[ -z "${JUPYTER_TOKEN:-}" ]]; then
+  JUPYTER_TOKEN=$(python3 -c "import secrets; print(secrets.token_hex(16))")
+  echo "[jupyter] JUPYTER_TOKEN not set — auto-generated a secure token."
+  echo "[jupyter] ⚠  TOKEN : ${JUPYTER_TOKEN}"
+  echo "[jupyter] Access : http://0.0.0.0:${JUPYTER_PORT:-8888}/?token=${JUPYTER_TOKEN}"
+fi
+
+exec jupyter lab \
+  --ServerApp.ip=0.0.0.0 \
+  --ServerApp.port="${JUPYTER_PORT:-8888}" \
+  --ServerApp.open_browser=False \
+  --ServerApp.token="${JUPYTER_TOKEN}" \
+  --ServerApp.password='' \
+  --ServerApp.allow_origin='*' \
+  --ServerApp.root_dir="/workspace" \
+  --ServerApp.allow_root=True

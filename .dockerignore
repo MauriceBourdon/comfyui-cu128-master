@@ -1,0 +1,27 @@
+# Git internals (pack files lourds — inutiles dans le contexte Docker)
+.git
+.gitignore
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Python
+*.pyc
+*.pyo
+**/__pycache__/
+*.egg-info/
+
+# Éditeurs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs locaux
+*.log
+
+# Envs locaux
+.env
+.venv/
+venv/

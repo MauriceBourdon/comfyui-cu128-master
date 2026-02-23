@@ -1,0 +1,39 @@
+# custom_nodes_manifest.txt — Custom nodes à installer automatiquement au démarrage du pod
+#
+# Format : git_url|branch  (branch optionnel, défaut : main)
+#
+# Décommenter les lignes souhaitées, puis rebuild l'image.
+# Les nœuds déjà installés sont détectés et ignorés (idempotent).
+#
+# Pour gérer manuellement dans le pod :
+#   install_custom_nodes.sh --list
+#   install_custom_nodes.sh --update
+# ────────────────────────────────────────────────────────────────────────────────
+
+# ── Essentiels & utilitaires ────────────────────────────────────────────────────────
+# https://github.com/kijai/ComfyUI-KJNodes|main
+# https://github.com/cubiq/ComfyUI_essentials|main
+# https://github.com/pythongosssss/ComfyUI-Custom-Scripts|main
+# https://github.com/rgthree/rgthree-comfy|main
+# https://github.com/WASasquatch/was-node-suite-comfyui|main
+
+# ── IP-Adapter & portrait ──────────────────────────────────────────────────────────
+# https://github.com/cubiq/ComfyUI_IPAdapter_plus|main
+# https://github.com/Fannovel16/comfyui_controlnet_aux|main
+
+# ── Vidéo / animation ──────────────────────────────────────────────────────────────
+# https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite|main
+# https://github.com/kijai/ComfyUI-WanVideoWrapper|main
+# https://github.com/Kosinkadink/ComfyUI-AnimateDiff-Evolved|main
+
+# ── Segmentation / détection ──────────────────────────────────────────────────────
+# https://github.com/ltdrdata/ComfyUI-Impact-Pack|main
+# https://github.com/storyicon/comfyui_segment_anything|main
+# https://github.com/kijai/ComfyUI-segment-anything-2|main
+
+# ── Upscaling / restauration ─────────────────────────────────────────────────────
+# https://github.com/ssitu/ComfyUI_UltimateSDUpscale|main
+# https://github.com/ttulttul/ComfyUI-Iterative-Mixer|main
+
+# ── Audio ────────────────────────────────────────────────────────────────────────
+# https://github.com/kijai/ComfyUI-MMAudio|main

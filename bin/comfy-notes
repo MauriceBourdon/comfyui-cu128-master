@@ -6,13 +6,18 @@ if ! grep -q '^#!/usr/bin/env bash' "$FILE" 2>/dev/null; then
   cat >"$FILE" <<'HDR'
 #!/usr/bin/env bash
 set -euo pipefail
+# ─────────────────────────────────────────────────────────────────
+# ⚠  REMINDER: Set HF_TOKEN on RunPod to download gated HuggingFace models
+#    RunPod > Pod > Environment Variables > HF_TOKEN = hf_your_token_here
+# ⚠  COMFY_ARGS_EXTRA: add extra ComfyUI flags without overwriting defaults
+#    e.g.  COMFY_ARGS_EXTRA="--lowvram"  or  "--fp8_e4m3fn"
+# ─────────────────────────────────────────────────────────────────
 STAMPS_DIR="/workspace/.stamps"; mkdir -p "$STAMPS_DIR"
 once() { local name="$1"; shift; if [ ! -f "$STAMPS_DIR/$name" ]; then echo "[once] $name → $*"; eval "$@"; touch "$STAMPS_DIR/$name"; else echo "[skip] $name"; fi; }
 safe_link() { local link="$1" target="$2"; if [ -e "$link" ] && [ ! -L "$link" ]; then mv "$link" "${link}.bak.$(date +%s)"; fi; ln -sfnT "$target" "$link"; }
 HDR
 fi
 echo "# $(date +'%F %T')" >> "$FILE"
-printf '%s
-' "$*" >> "$FILE"
+printf '%s\n' "$*" >> "$FILE"
 echo "→ ajouté dans $FILE"
 chmod +x "$FILE"

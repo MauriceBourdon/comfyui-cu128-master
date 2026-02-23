@@ -1,4 +1,4 @@
 #!/bin/bash
 set -euo pipefail
 cd "${COMFY_DIR:-/opt/ComfyUI}"
-exec python3 main.py ${COMFY_ARGS:-"--listen 0.0.0.0 --port 8188 --use-sage-attention"}
+exec python3 main.py ${COMFY_ARGS:-"--listen 0.0.0.0 --port 8188 --use-sage-attention"} ${COMFY_ARGS_EXTRA:-}

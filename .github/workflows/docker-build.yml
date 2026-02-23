@@ -2,15 +2,21 @@ name: Build & Push Docker (RunPod)
 on:
   push:
     branches: [ main ]
+  schedule:
+    - cron: '0 3 * * 1'   # Rebuild hebdomadaire (lundi 3h UTC) → ComfyUI toujours frais
   workflow_dispatch:
     inputs:
       tag:
         description: 'Tag additionnel (ex: v1.0.0)'
         required: false
         default: ''
+      force_refresh:
+        description: 'Forcer un clone frais de ComfyUI (true/false)'
+        required: false
+        default: 'false'
 
 env:
-  IMAGE_REPO: docker.io/mauricebourdondock/comfyui-cu128
+  IMAGE_REPO: docker.io/mauricebourdondock/comfyui-cu128-master
 
 jobs:
   build:
@@ -36,7 +42,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Compute tags (latest + run + sha + optional)
+      - name: Compute tags & cachebust
         id: meta
         run: |
           SHA="${GITHUB_SHA::7}"
@@ -46,6 +52,15 @@ jobs:
           if [ -n "$EXTRA" ]; then TAGS="${TAGS},${IMAGE_REPO}:${EXTRA}"; fi
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
           echo "Computed tags: ${TAGS}"
+          # CACHEBUST ciblé : invalide UNIQUEMENT le layer ComfyUI (SageAttention reste en cache)
+          FORCE="${{ github.event.inputs.force_refresh }}"
+          if [[ "${{ github.event_name }}" == "schedule" || "$FORCE" == "true" ]]; then
+            CACHEBUST="$(date +%Y%m%d)"
+          else
+            CACHEBUST="1"
+          fi
+          echo "cachebust=${CACHEBUST}" >> $GITHUB_OUTPUT
+          echo "ComfyUI cachebust: ${CACHEBUST}"
 
       - name: Build & Push (linux/amd64)
         uses: docker/build-push-action@v6
@@ -54,5 +69,7 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            COMFYUI_CACHEBUST=${{ steps.meta.outputs.cachebust }}
           cache-from: type=registry,ref=${{ env.IMAGE_REPO }}:buildcache
           cache-to: type=registry,ref=${{ env.IMAGE_REPO }}:buildcache,mode=max

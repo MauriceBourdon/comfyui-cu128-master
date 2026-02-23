@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "╔══════════════════════════════════════════╗"
+echo "║          ComfyUI  POD  STATUS            ║"
+echo "╚══════════════════════════════════════════╝"
+echo ""
+
+# ── Processus ────────────────────────────────────────────────────────────────
+echo "── Processus ───────────────────────────────"
+if pgrep -f "python3 main.py" >/dev/null 2>&1; then
+  PID=$(pgrep -f "python3 main.py" | head -1)
+  echo "  ComfyUI  : ✓ EN COURS (PID $PID)"
+else
+  echo "  ComfyUI  : ✗ ARRÊTÉ"
+fi
+
+if pgrep -f "jupyter" >/dev/null 2>&1; then
+  PID=$(pgrep -f "jupyter" | head -1)
+  echo "  Jupyter  : ✓ EN COURS (PID $PID)"
+else
+  echo "  Jupyter  : ✗ ARRÊTÉ"
+fi
+
+# ── Ports ────────────────────────────────────────────────────────────────────
+echo ""
+echo "── Ports ───────────────────────────────────"
+for port in 8188 8888; do
+  if ss -tlnp 2>/dev/null | grep -q ":${port} "; then
+    echo "  :$port  OUVERT"
+  else
+    echo "  :$port  fermé"
+  fi
+done
+
+# ── Modèles ──────────────────────────────────────────────────────────────────
+echo ""
+echo "── Modèles (/workspace/models) ─────────────"
+MODELS_DIR="${MODELS_DIR:-/workspace/models}"
+if [[ -d "$MODELS_DIR" ]]; then
+  TOTAL=$(du -sh "$MODELS_DIR" 2>/dev/null | cut -f1)
+  echo "  Taille totale : $TOTAL"
+  while IFS= read -r -d '' d; do
+    count=$(find "$d" -maxdepth 1 -type f | wc -l)
+    if [[ "$count" -gt 0 ]]; then
+      size=$(du -sh "$d" 2>/dev/null | cut -f1)
+      printf "  %-28s %3d fichier(s)  %s\n" "$(basename "$d")" "$count" "$size"
+    fi
+  done < <(find "$MODELS_DIR" -mindepth 1 -maxdepth 1 -type d -print0 | sort -z)
+else
+  echo "  Dossier $MODELS_DIR introuvable"
+fi
+
+# ── Custom Nodes ─────────────────────────────────────────────────────────────
+echo ""
+echo "── Custom Nodes ────────────────────────────"
+NODES_DIR="${COMFY_DIR:-/workspace/ComfyUI}/custom_nodes"
+if [[ -d "$NODES_DIR" ]]; then
+  count=$(find "$NODES_DIR" -mindepth 1 -maxdepth 1 -type d | wc -l)
+  echo "  $count nœud(s) installé(s)"
+  find "$NODES_DIR" -mindepth 1 -maxdepth 1 -type d -printf "  - %f\n" 2>/dev/null | sort
+else
+  echo "  $NODES_DIR introuvable"
+fi
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+echo ""
+echo "── Téléchargements modèles (10 dernières lignes) ─"
+LOG="/workspace/models_download.log"
+[[ -f "$LOG" ]] && tail -n 10 "$LOG" || echo "  (aucun log)"
+
+echo ""
+echo "── Custom nodes install (5 dernières lignes) ─"
+LOG2="/workspace/custom_nodes_install.log"
+[[ -f "$LOG2" ]] && tail -n 5 "$LOG2" || echo "  (aucun log)"
+
+echo ""
+echo "── Logs disponibles ────────────────────────"
+for f in /workspace/*.log; do
+  [[ -f "$f" ]] || continue
+  SIZE=$(du -sh "$f" 2>/dev/null | cut -f1)
+  echo "  $f  ($SIZE)"
+done

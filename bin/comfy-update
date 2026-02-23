@@ -1,9 +1,33 @@
 #!/bin/bash
 set -euo pipefail
 cd "${COMFY_DIR:-/workspace/ComfyUI}"
+
+# Ensure git is initialized and upstream remote exists
 git init >/dev/null 2>&1 || true
 git remote add upstream https://github.com/comfyanonymous/ComfyUI.git 2>/dev/null || true
-git fetch upstream
+
+# Save current state before anything else
+echo "[comfy-update] Saving current state..."
 /usr/local/bin/comfy-save
-git rebase upstream/master || git merge --no-edit upstream/master || true
-echo "Updated from upstream."
+
+echo "[comfy-update] Fetching upstream (master)..."
+git fetch upstream
+
+echo "[comfy-update] Attempting rebase..."
+if git rebase upstream/master; then
+  echo "[comfy-update] Rebase successful."
+else
+  echo "[comfy-update] Rebase failed — aborting and falling back to merge..."
+  git rebase --abort 2>/dev/null || true
+  if git merge --no-edit upstream/master; then
+    echo "[comfy-update] Merge successful."
+  else
+    echo "[comfy-update] ERROR: merge also failed — restoring last saved state..."
+    git merge --abort 2>/dev/null || true
+    /usr/local/bin/comfy-reset
+    echo "[comfy-update] Backup restored. Please update manually."
+    exit 1
+  fi
+fi
+
+echo "[comfy-update] Done."

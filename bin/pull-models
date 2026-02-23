@@ -1,18 +1,25 @@
 #!/bin/bash
 set -euo pipefail
-MODE="async"; MF="${MODELS_MANIFEST:-/workspace/models_manifest.txt}"; ROOT="${MODELS_DIR:-/workspace/models}"
+MODE="async"
+MF="${MODELS_MANIFEST:-/workspace/models_manifest.txt}"
+ROOT="${MODELS_DIR:-/workspace/models}"
 LOG="/workspace/models_download.log"
+WORKERS="${DL_WORKERS:-4}"
+
 while [[ $# -gt 0 ]]; do case "$1" in
-  --sync) MODE="sync"; shift;;
-  --status) tail -n 120 "$LOG"; exit 0;;
+  --sync)     MODE="sync"; shift;;
+  --status)   tail -n 120 "$LOG"; exit 0;;
   --manifest) MF="$2"; shift 2;;
-  --out) ROOT="$2"; shift 2;;
-  *) echo "unknown arg: $1"; exit 2;;
+  --out)      ROOT="$2"; shift 2;;
+  --workers)  WORKERS="$2"; shift 2;;
+  *) echo "argument inconnu: $1"; exit 2;;
 esac; done
+
 mkdir -p "$ROOT"
 if [[ "$MODE" == "sync" ]]; then
-  python /scripts/download_models_worker.py --manifest "$MF" --out "$ROOT" | tee -a "$LOG"
+  python /scripts/download_models_worker.py \
+    --manifest "$MF" --out "$ROOT" --workers "$WORKERS" | tee -a "$LOG"
 else
   nohup bash /scripts/download_models_async.sh "$MF" "$ROOT" >> "$LOG" 2>&1 &
-  echo "started (PID $!) — tail -f $LOG"
+  echo "démarré (PID $!) — tail -f $LOG"
 fi
