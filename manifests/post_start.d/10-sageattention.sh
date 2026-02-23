@@ -47,8 +47,11 @@ esac
 
 if [[ "$_do_build" == "true" ]]; then
   echo "[sage] Compilation SA2 pour sm${ARCH//./} (${GPU_CLASS})..."
+  # SA2 depuis GitHub (FP8, kernels CUDA via nvcc)
+  # --no-build-isolation : permet à setup.py de trouver torch dans le venv
   FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="$ARCH" \
-    /venv/bin/pip install --no-cache-dir --no-binary=:all: "sageattention==2.2.0"
+    /venv/bin/pip install --no-cache-dir --no-build-isolation \
+    "git+https://github.com/thu-ml/SageAttention.git"
   touch "$SA2_STAMP"
   echo "[sage] SA2 installé ✔"
 else
