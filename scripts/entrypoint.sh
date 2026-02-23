@@ -187,9 +187,11 @@ if [[ ! -f "${CUSTOM_NODES_MANIFEST}" && -f "/manifests/custom_nodes_manifest.tx
   cp -n "/manifests/custom_nodes_manifest.txt" "${CUSTOM_NODES_MANIFEST}"
 fi
 POST_DIR="${POST_START_DIR:-/workspace/post_start.d}"
-if [[ ! -d "$POST_DIR" && -d "/manifests/post_start.d" ]]; then
+if [[ -d "/manifests/post_start.d" ]]; then
   mkdir -p "$POST_DIR"
-  cp -n /manifests/post_start.d/*.sh "$POST_DIR" 2>/dev/null || true
+  # Toujours synchroniser les scripts système depuis l'image (mises à jour automatiques)
+  # Les scripts utilisateur avec d'autres noms ne sont pas écrasés
+  cp -f /manifests/post_start.d/*.sh "$POST_DIR/" 2>/dev/null || true
 fi
 
 # ── Post-start hooks (toggleable) ─────────────────────────────────────────────
