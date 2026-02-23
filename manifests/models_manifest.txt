@@ -1,2 +1,11 @@
-# repo|path|subdir_under_models
-Kijai/WanVideo_comfy|umt5-xxl-enc-bf16.safetensors|clip
+# models_manifest.txt — Modèles à télécharger automatiquement au démarrage du pod
+#
+# Format HuggingFace : repo|chemin_dans_repo|dossier_sous_models
+# Format URL directe : https://...|nom_fichier.safetensors|dossier_sous_models
+#
+# Exemples :
+#   stabilityai/stable-diffusion-xl-base-1.0|sd_xl_base_1.0.safetensors|checkpoints
+#   black-forest-labs/FLUX.1-dev|flux1-dev.safetensors|diffusion_models
+#   https://example.com/model.safetensors|model.safetensors|checkpoints
+#
+# Ajouter vos modèles ici :

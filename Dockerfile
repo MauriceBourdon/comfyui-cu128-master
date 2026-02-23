@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.8.0-cudnn-runtime-ubuntu22.04
+FROM nvidia/cuda:12.8.0-cudnn-devel-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
@@ -25,12 +25,13 @@ RUN python3 -m venv /venv \
     safetensors==0.4.5 \
     pyyaml tqdm
 
-# SageAttention 2.2.0 + Triton 3.2.0 — versions épinglées, layer STABLE
-# TORCH_CUDA_ARCH_LIST couvre Ampere (8.0/8.6) + Ada Lovelace (8.9)
-#                     + Hopper (9.0) + Blackwell (12.0)
+# SageAttention 2.2.0 — compilé pour Ampere/Ada/Hopper/Blackwell
+# Triton est déjà installé par PyTorch comme dépendance — pas besoin de le réinstaller.
+# FORCE_CUDA=1    → force la compilation même sans GPU présent (CI/CD)
+# Image devel     → fournit NVCC + headers CUDA nécessaires à la compilation
 # Placé AVANT ComfyUI pour ne PAS être invalidé quand COMFYUI_CACHEBUST change.
-RUN /venv/bin/pip install --no-cache-dir "triton==3.2.0" ninja \
- && TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9;9.0;12.0" \
+RUN /venv/bin/pip install --no-cache-dir ninja \
+ && FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9;9.0;12.0" \
     /venv/bin/pip install --no-cache-dir --no-binary=:all: "sageattention==2.2.0"
 
 # ── ComfyUI (layer invalidable indépendamment) ─────────────────────────────────
