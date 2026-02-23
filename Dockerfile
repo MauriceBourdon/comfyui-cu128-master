@@ -25,10 +25,12 @@ RUN python3 -m venv /venv \
     safetensors==0.4.5 \
     pyyaml tqdm
 
-# SageAttention est compilé au 1er boot du pod (GPU réel présent)
-# via manifests/post_start.d/10-sageattention.sh
-# Seul ninja est nécessaire ici comme outil de compilation.
-RUN /venv/bin/pip install --no-cache-dir ninja
+# uv + ComfyUI-Manager (package) + ninja
+# uv       → requis par le prestartup script de ComfyUI-Manager
+# comfyui_manager → version package (évite l'erreur 'running from source')
+# ninja    → outil de compilation pour SageAttention (1er boot)
+RUN /venv/bin/pip install --no-cache-dir uv ninja \
+ && /venv/bin/pip install --no-cache-dir --pre comfyui_manager
 
 # ── ComfyUI (layer invalidable indépendamment) ─────────────────────────────────
 # Passer --build-arg COMFYUI_CACHEBUST=$(date +%Y%m%d) en CI pour forcer un
@@ -78,7 +80,7 @@ ENV ENABLE_JUPYTER=true \
     JUPYTER_TOKEN="" \
     COMFY_AUTOSTART=true \
     COMFY_PORT=8188 \
-    COMFY_ARGS="--listen 0.0.0.0 --port 8188 --use-sage-attention --enable-manager" \
+    COMFY_ARGS="--listen 0.0.0.0 --port 8188 --enable-manager" \
     COMFY_ARGS_EXTRA="" \
     COMFY_AUTOUPDATE=false \
     DATA_DIR=/workspace \

@@ -12,7 +12,7 @@ SA2_STAMP="$STAMPS_DIR/sageattention2-build"
 SA3_STAMP="$STAMPS_DIR/sageattention3-build"
 
 # ── Détection GPU ───────────────────────────────────────────────────────────────────────
-ARCH=$(python3 - <<'PYEOF' 2>/dev/null || echo "none"
+ARCH=$(/venv/bin/python3 - <<'PYEOF' 2>/dev/null || echo "none"
 import torch, sys
 if not torch.cuda.is_available():
     print("none"); sys.exit()
@@ -27,7 +27,7 @@ if [[ "$ARCH" == "none" ]]; then
 fi
 
 MAJOR="${ARCH%%.*}"
-GPU_NAME=$(python3 -c "import torch; print(torch.cuda.get_device_name(0))" 2>/dev/null || echo "inconnu")
+GPU_NAME=$(/venv/bin/python3 -c "import torch; print(torch.cuda.get_device_name(0))" 2>/dev/null || echo "inconnu")
 if   [[ "$MAJOR" -ge 12 ]]; then GPU_CLASS="Blackwell"
 elif [[ "$MAJOR" -eq 9  ]]; then GPU_CLASS="Hopper"
 elif [[ "$ARCH"  == "8.9" ]]; then GPU_CLASS="Ada Lovelace"
@@ -48,7 +48,7 @@ esac
 if [[ "$_do_build" == "true" ]]; then
   echo "[sage] Compilation SA2 pour sm${ARCH//./} (${GPU_CLASS})..."
   FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="$ARCH" \
-    pip install --no-cache-dir --no-binary=:all: "sageattention==2.2.0"
+    /venv/bin/pip install --no-cache-dir --no-binary=:all: "sageattention==2.2.0"
   touch "$SA2_STAMP"
   echo "[sage] SA2 installé ✔"
 else
@@ -60,7 +60,7 @@ if [[ "$GPU_CLASS" == "Blackwell" && "${SAGEATTENTION3:-false}" == "true" ]]; th
   if [[ ! -f "$SA3_STAMP" ]]; then
     echo "[sage] Blackwell + SAGEATTENTION3=true → compilation SA3 (FP4)..."
     FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="12.0" \
-      pip install --no-cache-dir --no-binary=:all: "sageattention>=3.0.0"
+      /venv/bin/pip install --no-cache-dir --no-binary=:all: "sageattention>=3.0.0"
     touch "$SA3_STAMP"
     echo "[sage] SA3 installé ✔"
   else

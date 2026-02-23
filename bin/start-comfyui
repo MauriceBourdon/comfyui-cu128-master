@@ -1,4 +1,19 @@
 #!/bin/bash
 set -euo pipefail
+export PATH="/venv/bin:$PATH"
 cd "${COMFY_DIR:-/opt/ComfyUI}"
-exec python3 main.py ${COMFY_ARGS:-"--listen 0.0.0.0 --port 8188 --use-sage-attention"} ${COMFY_ARGS_EXTRA:-}
+
+# --use-sage-attention ajouté dynamiquement seulement si SA est installé
+# Évite le crash loop si SA n'est pas encore compilé (1er boot)
+SA_FLAG=""
+if python3 -c "import sageattention" 2>/dev/null; then
+  SA_FLAG="--use-sage-attention"
+  echo "[comfy] SageAttention détecté → --use-sage-attention activé"
+else
+  echo "[comfy] SageAttention non installé → démarrage sans SA (normal au 1er boot)"
+fi
+
+exec python3 main.py \
+  ${COMFY_ARGS:---listen 0.0.0.0 --port 8188 --enable-manager} \
+  ${SA_FLAG} \
+  ${COMFY_ARGS_EXTRA:-}
