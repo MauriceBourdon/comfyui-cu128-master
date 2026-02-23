@@ -45,15 +45,28 @@ case "$BUILD" in
   false|no|off)  echo "[sage] SAGEATTENTION_BUILD=false — skip."; _do_build=false ;;
 esac
 
+# Dossier de packages persistant (survit aux redémarrages du pod)
+SA_PKG_DIR="/workspace/packages"
+mkdir -p "$SA_PKG_DIR"
+
+# Si le stamp existe mais le package a disparu (ex: workspace recréé), recompiler
+if [[ -f "$SA2_STAMP" && ! -d "$SA_PKG_DIR/sageattention" ]]; then
+  echo "[sage] Package absent malgré le stamp — recompilation forcée."
+  rm -f "$SA2_STAMP"
+  _do_build="true"
+fi
+
 if [[ "$_do_build" == "true" ]]; then
   echo "[sage] Compilation SA2 pour sm${ARCH//./} (${GPU_CLASS})..."
-  # SA2 depuis GitHub (FP8, kernels CUDA via nvcc)
-  # --no-build-isolation : permet à setup.py de trouver torch dans le venv
+  # Installation dans /workspace/packages (persistant entre les boots)
+  # --no-build-isolation : setup.py trouve torch dans le venv
+  # --target            : installe dans /workspace/packages au lieu de /venv
   FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="$ARCH" \
     /venv/bin/pip install --no-cache-dir --no-build-isolation \
+    --target "$SA_PKG_DIR" \
     "git+https://github.com/thu-ml/SageAttention.git"
   touch "$SA2_STAMP"
-  echo "[sage] SA2 installé ✔"
+  echo "[sage] SA2 installé dans $SA_PKG_DIR ✔"
 else
   echo "[sage] SA2 déjà compilé (stamp) — skip."
 fi

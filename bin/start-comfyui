@@ -1,6 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 export PATH="/venv/bin:$PATH"
+
+# Packages persistants du workspace (ex: SageAttention compilé au 1er boot)
+if [[ -d "/workspace/packages" ]]; then
+  export PYTHONPATH="/workspace/packages:${PYTHONPATH:-}"
+fi
+
 cd "${COMFY_DIR:-/opt/ComfyUI}"
 
 # --use-sage-attention ajouté dynamiquement seulement si SA est installé
