@@ -10,6 +10,9 @@
 #   install_custom_nodes.sh --update
 # ────────────────────────────────────────────────────────────────────────────────
 
+# ── Manager ──────────────────────────────────────────────────────────────────────────
+https://github.com/ltdrdata/ComfyUI-Manager|main
+
 # ── Essentiels & utilitaires ────────────────────────────────────────────────────────
 # https://github.com/kijai/ComfyUI-KJNodes|main
 # https://github.com/cubiq/ComfyUI_essentials|main

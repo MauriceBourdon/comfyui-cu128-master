@@ -25,21 +25,20 @@ RUN python3 -m venv /venv \
     safetensors==0.4.5 \
     pyyaml tqdm
 
-# uv + ComfyUI-Manager (package) + ninja
-# uv       → requis par le prestartup script de ComfyUI-Manager
-# comfyui_manager → version package (évite l'erreur 'running from source')
-# ninja    → outil de compilation pour SageAttention (1er boot)
-RUN /venv/bin/pip install --no-cache-dir uv ninja \
- && /venv/bin/pip install --no-cache-dir --pre comfyui_manager
+# uv + ninja
+# uv     → requis par ComfyUI-Manager
+# ninja  → outil de compilation pour SageAttention (1er boot)
+RUN /venv/bin/pip install --no-cache-dir uv ninja
 
 # ── ComfyUI (layer invalidable indépendamment) ─────────────────────────────────
 # Passer --build-arg COMFYUI_CACHEBUST=$(date +%Y%m%d) en CI pour forcer un
 # clone frais SANS reconstruire SageAttention (layer précédent reste en cache).
 ARG COMFYUI_CACHEBUST=1
 
-# ComfyUI + requirements
+# ComfyUI + requirements + frontend à jour
 RUN git clone --depth=1 https://github.com/comfyanonymous/ComfyUI.git /opt/ComfyUI \
- && /venv/bin/pip install --no-cache-dir -r /opt/ComfyUI/requirements.txt
+ && /venv/bin/pip install --no-cache-dir -r /opt/ComfyUI/requirements.txt \
+ && /venv/bin/pip install --no-cache-dir --upgrade comfyui-frontend-package
 
 # ComfyUI-Manager est intégré nativement depuis déc. 2025 — activé via --enable-manager
 # Plus besoin de git clone séparé.
@@ -80,7 +79,7 @@ ENV ENABLE_JUPYTER=true \
     JUPYTER_TOKEN="" \
     COMFY_AUTOSTART=true \
     COMFY_PORT=8188 \
-    COMFY_ARGS="--listen 0.0.0.0 --port 8188 --enable-manager" \
+    COMFY_ARGS="--listen 0.0.0.0 --port 8188" \
     COMFY_ARGS_EXTRA="" \
     COMFY_AUTOUPDATE=false \
     DATA_DIR=/workspace \

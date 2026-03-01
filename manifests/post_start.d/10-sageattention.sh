@@ -8,8 +8,6 @@
 set -euo pipefail
 export PATH="/venv/bin:$PATH"
 STAMPS_DIR="/workspace/.stamps"; mkdir -p "$STAMPS_DIR"
-SA2_STAMP="$STAMPS_DIR/sageattention2-build"
-SA3_STAMP="$STAMPS_DIR/sageattention3-build"
 
 # ── Détection GPU ───────────────────────────────────────────────────────────────────────
 ARCH=$(/venv/bin/python3 - <<'PYEOF' 2>/dev/null || echo "none"
@@ -35,6 +33,19 @@ elif [[ "$MAJOR" -eq 8  ]]; then GPU_CLASS="Ampere"
 else GPU_CLASS="Inconnu"; fi
 
 echo "[sage] GPU    : $GPU_NAME  (sm${ARCH//./} — ${GPU_CLASS})"
+
+# Les stamps incluent l'archi GPU → recompilation auto si changement de GPU
+# ex: sageattention2-build-sm89 (4090) vs sageattention2-build-sm120 (5090)
+SA2_STAMP="$STAMPS_DIR/sageattention2-build-sm${ARCH//./}"
+SA3_STAMP="$STAMPS_DIR/sageattention3-build-sm${ARCH//./}"
+
+# Nettoyer les stamps d'autres architectures
+for old_stamp in "$STAMPS_DIR"/sageattention2-build-sm*; do
+  [[ -f "$old_stamp" ]] || continue
+  [[ "$old_stamp" == "$SA2_STAMP" ]] && continue
+  rm -f "$old_stamp"
+  echo "[sage] Ancien stamp supprimé : $(basename $old_stamp)"
+done
 
 # ── Faut-il compiler SA2 ? ─────────────────────────────────────────────────────────────────
 BUILD="${SAGEATTENTION_BUILD:-once}"
@@ -74,11 +85,18 @@ fi
 # ── SA3 optionnel pour Blackwell ────────────────────────────────────────────────────────────────
 if [[ "$GPU_CLASS" == "Blackwell" && "${SAGEATTENTION3:-false}" == "true" ]]; then
   if [[ ! -f "$SA3_STAMP" ]]; then
-    echo "[sage] Blackwell + SAGEATTENTION3=true → compilation SA3 (FP4)..."
-    FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="12.0" \
-      /venv/bin/pip install --no-cache-dir --no-binary=:all: "sageattention>=3.0.0"
-    touch "$SA3_STAMP"
-    echo "[sage] SA3 installé ✔"
+    echo "[sage] Blackwell + SAGEATTENTION3=true → tentative SA3 (FP4)..."
+    # SA3 n'est pas encore sur PyPI (dernière version : 1.x)
+    # On tente depuis le repo git, échec non bloquant
+    if FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="12.0" \
+        /venv/bin/pip install --no-cache-dir --no-build-isolation \
+        --target "$SA_PKG_DIR" \
+        "git+https://github.com/thu-ml/SageAttention.git@sa3" 2>/dev/null; then
+      touch "$SA3_STAMP"
+      echo "[sage] SA3 installé ✔"
+    else
+      echo "[sage] SA3 non disponible (branche sa3 absente ou erreur) — SA2 actif."
+    fi
   else
     echo "[sage] SA3 déjà installé (stamp) — skip."
   fi
