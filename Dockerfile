@@ -35,13 +35,14 @@ RUN /venv/bin/pip install --no-cache-dir uv ninja
 # clone frais SANS reconstruire SageAttention (layer précédent reste en cache).
 ARG COMFYUI_CACHEBUST=1
 
-# ComfyUI + requirements + frontend à jour
+# ComfyUI + requirements + frontend à jour + ComfyUI-Manager
 RUN git clone --depth=1 https://github.com/comfyanonymous/ComfyUI.git /opt/ComfyUI \
  && /venv/bin/pip install --no-cache-dir -r /opt/ComfyUI/requirements.txt \
- && /venv/bin/pip install --no-cache-dir --upgrade comfyui-frontend-package
-
-# ComfyUI-Manager est intégré nativement depuis déc. 2025 — activé via --enable-manager
-# Plus besoin de git clone séparé.
+ && /venv/bin/pip install --no-cache-dir "comfyui-frontend-package>=1.39.19,<2.0.0" \
+ && git clone --depth=1 https://github.com/ltdrdata/ComfyUI-Manager.git \
+    /opt/ComfyUI/custom_nodes/ComfyUI-Manager \
+ && /venv/bin/pip install --no-cache-dir \
+    -r /opt/ComfyUI/custom_nodes/ComfyUI-Manager/requirements.txt
 
 # Scripts + manifests + helper binaries
 COPY scripts/entrypoint.sh             /entrypoint.sh

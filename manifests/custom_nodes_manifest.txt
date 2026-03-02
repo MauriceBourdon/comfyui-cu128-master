@@ -10,8 +10,8 @@
 #   install_custom_nodes.sh --update
 # ────────────────────────────────────────────────────────────────────────────────
 
-# ── Manager ──────────────────────────────────────────────────────────────────────────
-https://github.com/ltdrdata/ComfyUI-Manager|main
+# ── Manager — baked dans l'image Docker (Dockerfile), pas besoin ici ────────────────
+# https://github.com/ltdrdata/ComfyUI-Manager|main
 
 # ── Essentiels & utilitaires ────────────────────────────────────────────────────────
 # https://github.com/kijai/ComfyUI-KJNodes|main
