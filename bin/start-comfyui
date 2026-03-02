@@ -11,10 +11,15 @@ cd "${COMFY_DIR:-/opt/ComfyUI}"
 
 # --use-sage-attention ajouté dynamiquement seulement si SA est installé
 # Évite le crash loop si SA n'est pas encore compilé (1er boot)
+# Contrôle via variable d'env RunPod : SAGE_ATTENTION=false pour désactiver
 SA_FLAG=""
 if python3 -c "import sageattention" 2>/dev/null; then
-  SA_FLAG="--use-sage-attention"
-  echo "[comfy] SageAttention détecté → --use-sage-attention activé"
+  if [[ "${SAGE_ATTENTION:-true}" == "false" ]]; then
+    echo "[comfy] SageAttention détecté mais SAGE_ATTENTION=false → désactivé"
+  else
+    SA_FLAG="--use-sage-attention"
+    echo "[comfy] SageAttention détecté → --use-sage-attention activé"
+  fi
 else
   echo "[comfy] SageAttention non installé → démarrage sans SA (normal au 1er boot)"
 fi
