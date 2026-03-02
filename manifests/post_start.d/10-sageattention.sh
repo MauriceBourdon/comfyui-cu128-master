@@ -74,7 +74,7 @@ if [[ "$_do_build" == "true" ]]; then
   # --target            : installe dans /workspace/packages au lieu de /venv
   FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="$ARCH" \
     /venv/bin/pip install --no-cache-dir --no-build-isolation \
-    --target "$SA_PKG_DIR" \
+    --upgrade --target "$SA_PKG_DIR" \
     "git+https://github.com/thu-ml/SageAttention.git"
   touch "$SA2_STAMP"
   echo "[sage] SA2 installé dans $SA_PKG_DIR ✔"
