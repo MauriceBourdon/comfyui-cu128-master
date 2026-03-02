@@ -162,6 +162,17 @@ models:
   vae_approx: /workspace/models/vae_approx
 YAML
 
+# ── Config Manager intégré ────────────────────────────────────────────────────
+mkdir -p "${COMFY_DIR}/user/__manager"
+if [[ ! -f "${COMFY_DIR}/user/__manager/config.ini" ]]; then
+  cat > "${COMFY_DIR}/user/__manager/config.ini" << 'EOF'
+[default]
+security_level = weak
+network_mode = personal_cloud
+EOF
+  echo "[manager] config.ini créé (security_level=weak, network_mode=personal_cloud)"
+fi
+
 # ── Symlinks ───────────────────────────────────────────────────────────────────
 safe_link() {
   local link="$1" target="$2"
